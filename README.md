@@ -8,7 +8,10 @@ A noob solution for [Daily Shikaku Puzzle](https://shikakuofthe.day/master) writ
 deno run -A ./build.ts
 ```
 
-Copy `./dist/bundle.js` to your TemperMonkey plugin
+- Copy `./dist/bundle.js` to your TemperMonkey plugin
+- Open Puzzle website
+- F12 to open web console
+- use `window.start()` to start the game
 
 ## Performance
 
