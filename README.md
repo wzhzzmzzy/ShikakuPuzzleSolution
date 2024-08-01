@@ -12,7 +12,8 @@ Copy `./dist/bundle.js` to your TemperMonkey plugin
 
 ## Performance
 
+![image](https://github.com/user-attachments/assets/863a4bb0-0866-47cf-8bc9-31c98de5e998)
+
 - Master: about 5-8 min
-- Expert: about 1 min
-- Hard / Medium: about 10 s
+- Expert / Hard / Medium: less than 10 s
 - Eazy: about 1 s
