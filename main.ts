@@ -3,9 +3,9 @@ import { clickStart, addButton } from "./lib/browser.ts";
 const prepare = () => {
   window.start = clickStart
   window.onload = () => {
-    setTimeout(() => {
+    // setTimeout(() => {
       addButton()
-    }, 500)
+    // }, 500)
   }
   console.log("loaded, use `window.start()` and the question solved")
 }

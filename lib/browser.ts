@@ -55,6 +55,7 @@ export const answerDispatch = (question: Question, answers: Rect[] | null) => {
   })
 }
 
+let btn: HTMLButtonElement
 export const clickStart = (only_parse = false) => {
   try {
       const startBtn = document.getElementsByClassName('start-game-container')[0]
@@ -65,6 +66,7 @@ export const clickStart = (only_parse = false) => {
   }
 
   setTimeout(() => {
+    if (btn) btn.disabled = true
     window.currentQuestion = questionParser()
     if (only_parse) return;
     const startT = Date.now()
@@ -73,6 +75,7 @@ export const clickStart = (only_parse = false) => {
     console.log('solved in', Date.now() - startT, 'ms')
     console.log('start writing answer!')
     answerDispatch(window.currentQuestion, window.answer)
+    if (btn) btn.disabled = false
   }, 100);
 }
 
@@ -83,9 +86,9 @@ export const addButton = ()=>{
     }
     if (window.location.hostname.includes('shikakuofthe')) {
         const actionContainer = document.getElementsByClassName('actions')[0];
-        const btn = document.createElement('button');
+        btn = document.createElement('button');
         btn.className = 'button';
-        btn.style.background = '#ff6633';
+        btn.style.background = '#0ea5e9'; // tw-sky-500
         btn.style.width = '100%';
         btn.innerText = 'Answer'
         btn.addEventListener('click', () => {

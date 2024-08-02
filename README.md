@@ -10,6 +10,11 @@ deno run -A ./build.ts
 
 - Copy `./dist/bundle.js` to your TemperMonkey plugin
 - Open Puzzle website
+- Wait for a few seconds, *Answer* Button will be attached in the `Clear All / Undo` actions line
+- Click *Answer* to get the Answer (if at Master level, Your website may be stucked for a while)
+
+### Cannot see *Answer* Button?
+
 - F12 to open web console
 - use `window.start()` to start the game
 

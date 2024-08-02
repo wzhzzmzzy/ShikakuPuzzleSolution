@@ -15,9 +15,10 @@ export class QuestionMaze {
   maze_status: number[][] = []
   status: Rect[] = []
 
-  constructor(question: Question) {
+  constructor(question: Question, { debug = false } = {}) {
     this.question = question
     this.size = question.size
+    this.debug = debug
     this.maze = repeat(() => repeat(() => 0, this.size) as number[], this.size) as number[][]
     question.maze.forEach((loc: [any, any, any]) => {
       const [x, y, n] = loc
@@ -141,9 +142,6 @@ export class QuestionMaze {
     let is_full = true
     for (let i = 0; i < this.size; ++i) {
       for (let j = 0; j < this.size; ++j) {
-        if (this.debug) {
-          if (this.maze_status[i][j] === 0) console.log(i, j)
-        }
         is_full = is_full && this.maze_status[i][j] !== 0
       }
     }
@@ -152,11 +150,7 @@ export class QuestionMaze {
 
   solve(i = -1): null | Rect[] {
     t += 1
-    // if (t > 20) {
-    //   t === 21 ? this.print_status() : null
-    //   return null
-    // }
-    console.log('step', t)
+    if (this.debug) console.log('step', t)
     // -1 表示最外层调用
     if (i === -1) {
       this.maze_status = JSON.parse(JSON.stringify(this.maze))
