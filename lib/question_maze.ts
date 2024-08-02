@@ -1,5 +1,5 @@
-import { DIFFICULTY, Question, Loc, Rect } from './question.ts'
-import { gcd, all_multiple_numbers, repeat, same_loc } from './utils.ts'
+import { Question, Loc, Rect, RawPoint } from './question.ts'
+import { all_multiple_numbers, repeat, same_loc, get_possible_choices } from './utils.ts'
 
 // DEBUG GLOBAL VARIABLES
 let t = 0
@@ -54,7 +54,8 @@ export class QuestionMaze {
     return (x >= 0 && x < this.size) && (y >= 0 && y < this.size)
   }
 
-  is_area_valid(ls: Loc, re: Loc, np: Loc) {
+  is_area_valid(rect: Rect) {
+    const { ls, re, np } = rect
     for (let i = ls.x; i <= re.x; ++i) {
       for (let j = ls.y; j <= re.y; ++j) {
         if (i === np.x && j === np.y) continue
@@ -72,8 +73,9 @@ export class QuestionMaze {
         const ls = { x: i, y: j }
         const re = { x: i + choice[0] - 1, y: j + choice[1] - 1 }
         if (!this.is_valid(ls) || !this.is_valid(re)) continue
-        if (!this.is_area_valid(ls, re, np)) continue
-        rects.push({ np, ls, re })
+        const rect = { ls, re, np }
+        if (!this.is_area_valid(rect)) continue
+        rects.push(rect)
       }
     }
     return rects
@@ -106,8 +108,9 @@ export class QuestionMaze {
     return false
   }
 
-  is_area_empty(point: [number, number, number], ls: Loc, re: Loc): boolean {
-    const [px, py] = point;
+  is_area_empty(rect: Rect): boolean {
+    const { np, ls, re } = rect
+    const { x: px, y: py } = np
     for (let i = ls.x; i <= re.x; ++i) {
       for (let j = ls.y; j <= re.y; ++j) {
         if (i === px && j === py) continue
@@ -121,19 +124,87 @@ export class QuestionMaze {
     return i === this.question.maze[this.question.maze.length - 1][0]
   }
 
-  is_block_dead(loc: Loc): boolean {
-    const active_points = this.question.maze.slice(this.status.length)
-    for (const point of active_points) {
-      const [px, py, n] = point
-      const { x, y } = loc
-      const x_dis = Math.abs(x - px + 1)
-      const y_dis = Math.abs(y - py + 1)
-      if (x_dis * y_dis > n) continue
-      if (this.is_area_empty(point, {
+  // 查找还没有答案的数字
+  active_points: RawPoint[] = []
+  get_active_points() {
+    if (this.active_points.length) return this.active_points
+    this.active_points = this.question.maze.filter(([x, y]) => !this.status.some(({ np }) => np.x === x && np.y === y))
+    return this.active_points
+  }
+
+  // 查找从某一数字到某一空格的所有可能矩形
+  get_point_cover_block_choices(point: RawPoint, block: Loc) {
+    const [px, py, n] = point
+    const { x, y } = block
+    const x_dis = Math.abs(x - px + 1)
+    const y_dis = Math.abs(y - py + 1)
+    // 绝对距离检查
+    if (x_dis * y_dis > n) return null
+    // 绝对区域检查
+    if (!this.is_area_empty({
+      np: { x: px, y: py},
+      ls: {
         x: Math.min(x, px), y: Math.min(y, py)
-      }, {
+      }, 
+      re: {
         x: Math.max(x, px), y: Math.max(y, py)
-      })) return false
+      }
+    })) {
+      return null
+    }
+
+    const all_possible_choices = get_possible_choices(n, x_dis, y_dis)
+    let all_possible_rects: Rect[] = []
+
+    all_possible_choices.forEach(choice => {
+      const possible_rects = this.walk({ x: px, y: py }, choice)
+        .filter(rect => rect.ls.x <= x && rect.ls.y <= y && rect.re.x >= x && rect.re.y >= y)
+        .filter(rect => this.is_area_empty(rect))
+      all_possible_rects = all_possible_rects.concat(possible_rects)
+    })
+
+    return all_possible_rects
+  }
+
+  get_possible_points(block: Loc) {
+    const active_points = this.get_active_points()
+
+    const points_and_rects: Array<{ point: RawPoint, rects: Rect[] }> = []
+    for (const point of active_points) {
+      const rects = this.get_point_cover_block_choices(point, block)
+      if (rects?.length) points_and_rects.push({
+        point, rects
+      })
+    }
+
+    return points_and_rects
+  }
+
+  // 检查某个点是否能覆盖到某个空白区域（不包括约数对检查）
+  can_point_cover_block(point: RawPoint, block: Loc) {
+    const [px, py, n] = point
+    const { x, y } = block
+    const x_dis = Math.abs(x - px + 1)
+    const y_dis = Math.abs(y - py + 1)
+    if (x_dis * y_dis > n) return false 
+    if (this.is_area_empty({
+      np: { x: px, y: py},
+      ls: {
+        x: Math.min(x, px), y: Math.min(y, py)
+      }, 
+      re: {
+        x: Math.max(x, px), y: Math.max(y, py)
+      }
+    })) {
+      return true;
+    }
+    return false
+  }
+
+  is_block_dead(loc: Loc): boolean {
+    const active_points = this.get_active_points()
+    for (const point of active_points) {
+      if (this.can_point_cover_block(point, loc)) return false
     }
     return true
   }
@@ -146,6 +217,37 @@ export class QuestionMaze {
       }
     }
     return is_full
+  }
+  
+  solve_by_block(flag = -1): Rect[] | null {
+    t += 1
+    if (this.debug) console.log('step', t)
+    if (flag === -1) {
+      this.maze_status = JSON.parse(JSON.stringify(this.maze))
+    }
+    for (let i = 0; i < this.size; ++i) {
+      for (let j = 0; j < this.size; ++j) {
+        if (this.maze_status[i][j]) continue
+        const possible_list = this.get_possible_points({ x: i, y: j })
+        if (possible_list.length === 0) return null
+        for (const { point, rects } of possible_list) {
+          for (const rect of rects) {
+            this.status.push(rect)
+            this.flip(rect)
+
+            const isRightAnswer = this.clone().solve_by_block(0)
+            if (isRightAnswer) {
+              return isRightAnswer
+            } else {
+              this.status.pop()
+              this.flip_reverse(rect)
+            }
+          }
+        }
+        return null
+      }
+    }
+    return this.status
   }
 
   solve(i = -1): null | Rect[] {
@@ -189,7 +291,8 @@ export class QuestionMaze {
         // const isRightAnswer = this.clone().solve(i)
         const isRightAnswer = this.has_block_dead() ? null : this.clone().solve(i)
         if (!isRightAnswer) {
-          this.status.splice(cursor, 1)
+          // this.status.splice(cursor, 1)
+          this.status.pop()
           this.flip_reverse(rect)
         }
         else return isRightAnswer

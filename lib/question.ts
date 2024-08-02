@@ -10,7 +10,7 @@ export enum DIFFICULTY {
 export interface Question {
   level: DIFFICULTY
   size: number
-  maze: Array<[number, number, number]>
+  maze: Array<RawPoint>
 }
 
 export interface Loc {
@@ -23,3 +23,5 @@ export interface Rect {
   ls: Loc // left start
   re: Loc // right end
 }
+
+export type RawPoint = [number, number, number]

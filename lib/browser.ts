@@ -56,7 +56,7 @@ export const answerDispatch = (question: Question, answers: Rect[] | null) => {
 }
 
 let btn: HTMLButtonElement
-export const clickStart = (only_parse = false) => {
+export const clickStart = ({ only_parse = false, mode = 'fast' } = {}) => {
   try {
       const startBtn = document.getElementsByClassName('start-game-container')[0]
       .getElementsByTagName('button')[0]
@@ -71,7 +71,10 @@ export const clickStart = (only_parse = false) => {
     if (only_parse) return;
     const startT = Date.now()
     console.log('solving')
-    window.answer = new QuestionMaze(window.currentQuestion).solve()
+    if (mode === 'fast')
+      window.answer = new QuestionMaze(window.currentQuestion).solve_by_block()
+    else
+      window.answer = new QuestionMaze(window.currentQuestion).solve()
     console.log('solved in', Date.now() - startT, 'ms')
     console.log('start writing answer!')
     answerDispatch(window.currentQuestion, window.answer)
@@ -99,6 +102,7 @@ export const addButton = ()=>{
         console.log('no support website')
     }
 };
+
 
 declare global {
   interface Window {

@@ -36,5 +36,16 @@ export const repeat: <T extends () => number | number[]>(n: T, times: number) =>
 
 export const same_loc = (a: Loc, b: Loc) => {
   return a.x === b.x && a.y === b.y
+}
 
+/**
+ * 查找当前数字的所有约数对，选出能覆盖到指定距离的
+ * @param n 
+ * @param x_dis 
+ * @param y_dis 
+ * @returns 
+ */
+export const get_possible_choices = (n: number, x_dis: number, y_dis: number) => {
+  const all_choices = all_multiple_numbers(n)
+  return all_choices.filter(choice => choice[0] >= x_dis && choice[1] >= y_dis)
 }
