@@ -1,17 +1,23 @@
 # ShikakuPuzzleSolution
 
-A noob solution for [Daily Shikaku Puzzle](https://shikakuofthe.day/master) writen by Deno.
+A ~~noob~~ **blazing fast** solution for [Daily Shikaku Puzzle](https://shikakuofthe.day/master) writen by Deno.
 
 ## Usage
 
-```
-deno run -A ./build.ts
-```
+
+### just download it
 
 - Copy `./dist/bundle.js` to your TemperMonkey plugin
 - Open Puzzle website
 - Wait for a few seconds, *Answer* Button will be attached in the `Clear All / Undo` actions line
 - Click *Answer* to get the Answer (if at Master level, Your website may be stucked for a while)
+
+### build by your own
+
+```
+deno run -A ./build.ts
+```
+
 
 ### Cannot see *Answer* Button?
 
@@ -20,8 +26,8 @@ deno run -A ./build.ts
 
 ## Performance
 
-![image](https://github.com/user-attachments/assets/e507549f-e57b-4b3f-bb7c-592fd6e88062)
+![image](./image.png)
 
-- Master: about 1-5 min
-- Expert / Hard / Medium: less than 10 s
-- Eazy: about 1 s
+- Master: less than 10s
+- Expert / Hard / Medium: about 3-6s
+- Eazy: 1s
